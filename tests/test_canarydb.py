@@ -64,3 +64,56 @@ class TestCanaryDB(unittest.TestCase):
 		self.assertEqual(address, firstMissing[1])
 		delta = firstMissing[2].total_seconds() - expectedDelta.total_seconds()
 		self.assertTrue(delta <= 10)
+
+	def testAccounts(self):
+		listAddress = "list@example.org"
+		address = "user@example.net"
+		imapserver = "imap.example.net"
+		password = "secretpassword"
+
+		# Verify that no accounts exist
+		accounts = self.db.get_accounts()
+		self.assertEqual(0, len(accounts))
+
+		# Add one account
+		self.db.add_account(listAddress, address, imapserver, password)
+
+		# Verify that the account exists
+		accounts = self.db.get_accounts()
+		self.assertEqual(1, len(accounts))
+		self.assertEqual(listAddress, accounts[0][0])
+		self.assertEqual(address, accounts[0][1])
+		self.assertEqual(imapserver, accounts[0][2])
+		self.assertEqual(password, accounts[0][3])
+
+		# Remove the account
+		self.db.remove_account(address)
+		accounts = self.db.get_accounts()
+		self.assertEqual(0, len(accounts))
+
+	def testGetRecipientsForList(self):
+		listAddress1 = "list1@example.org"
+		listAddress2 = "list2@example.org"
+		imapserver = "imap.example.net"
+		password = "secretpassword"
+		address1 = "user1@example.net"
+		address2 = "user2@example.net"
+
+		# No accounts
+		self.assertEqual([], self.db.get_recipients_for_list(listAddress1));
+		self.assertEqual([], self.db.get_recipients_for_list(listAddress2));
+
+		# One account
+		self.db.add_account(listAddress1, address1, imapserver, password)
+		self.assertEqual([address1], self.db.get_recipients_for_list(listAddress1));
+		self.assertEqual([], self.db.get_recipients_for_list(listAddress2));
+
+		# Two accounts
+		self.db.add_account(listAddress1, address2, imapserver, password)
+		self.assertEqual([address1, address2], self.db.get_recipients_for_list(listAddress1));
+		self.assertEqual([], self.db.get_recipients_for_list(listAddress2));
+
+		# Two lists
+		self.db.add_account(listAddress2, address1, imapserver, password)
+		self.assertEqual([address1, address2], self.db.get_recipients_for_list(listAddress1));
+		self.assertEqual([address1], self.db.get_recipients_for_list(listAddress2));

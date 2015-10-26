@@ -1,9 +1,9 @@
 import imaplib, email
 
-def get_imap(account):
+def get_imap(server, username, password):
 	'''Connect and login via IMAP'''
-	mail = imaplib.IMAP4_SSL(account[0])
-	mail.login(account[1],  account[2])
+	mail = imaplib.IMAP4_SSL(server)
+	mail.login(username, password)
 	return mail
 
 def get_mail_uids(mail):
@@ -17,3 +17,11 @@ def get_message(mail, uid):
 	result, data = mail.uid('fetch', uid, '(RFC822)')
 	raw_email = data[0][1]
 	return email.message_from_string(raw_email)
+
+def delete_message(mail, uid):
+	result = mail.uid('store', uid, '+FLAGS', '\\Deleted')
+
+def close(mail):
+	mail.expunge()
+	mail.close()
+	mail.logout()

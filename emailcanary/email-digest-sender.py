@@ -10,7 +10,7 @@ youve_got_mail = False
 all_subjects = {}
 
 for account in ACCOUNTS:
-	mail = emailutils.get_imap(account)
+	mail = emailutils.get_imap(account[0], account[1], account[2])
 	these_subjects = []
 	for uid in emailutils.get_mail_uids(mail):
 		message = emailutils.get_message(mail, uid)
