@@ -19,7 +19,7 @@ def get_message(mail, uid):
 	return email.message_from_string(raw_email)
 
 def delete_message(mail, uid):
-	result = mail.uid('store', uid, '+FLAGS', '\\Deleted')
+	result = mail.uid('store', uid, '+FLAGS', '(\Deleted)')
 
 def close(mail):
 	mail.expunge()

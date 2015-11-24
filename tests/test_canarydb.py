@@ -14,23 +14,25 @@ class TestCanaryDB(unittest.TestCase):
 		shutil.rmtree(self.tempdir)
 
 	def testPingCheckPong(self):
+		listAddress = "list@example.com"
 		address = "test@example.com"
 		time = datetime.datetime(2015, 10, 24, 9, 00)
 		uuid = "1234"
 		expectedDelta = datetime.datetime.now() - time
 
 		# Record a Ping
-		self.db.ping(address, time, uuid)
+		self.db.ping(listAddress, address, time, uuid)
 
 		# Check for missing pongs
 		missing = self.db.get_missing_pongs()
 
 		self.assertEqual(1, len(missing))
 		firstMissing = missing[0]
-		self.assertEqual(3, len(firstMissing))
-		self.assertEqual(uuid, firstMissing[0])
-		self.assertEqual(address, firstMissing[1])
-		delta = firstMissing[2].total_seconds() - expectedDelta.total_seconds()
+		self.assertEqual(4, len(firstMissing))
+		self.assertEqual(listAddress, firstMissing[0])
+		self.assertEqual(uuid, firstMissing[1])
+		self.assertEqual(address, firstMissing[2])
+		delta = firstMissing[3].total_seconds() - expectedDelta.total_seconds()
 		self.assertTrue(delta <= 10)
 
 		# Record a pong
@@ -42,13 +44,14 @@ class TestCanaryDB(unittest.TestCase):
 		self.assertEqual(0, len(missing))
 
 	def testCloseReopen(self):
+		listAddress = "list@example.com"
 		address = "test@example.com"
 		time = datetime.datetime(2015, 10, 24, 9, 00)
 		uuid = "1234"
 		expectedDelta = datetime.datetime.now() - time
 
 		# Record a Ping
-		self.db.ping(address, time, uuid)
+		self.db.ping(listAddress, address, time, uuid)
 
 		# Close, Reopen
 		self.db.close()
@@ -59,10 +62,11 @@ class TestCanaryDB(unittest.TestCase):
 
 		self.assertEqual(1, len(missing))
 		firstMissing = missing[0]
-		self.assertEqual(3, len(firstMissing))
-		self.assertEqual(uuid, firstMissing[0])
-		self.assertEqual(address, firstMissing[1])
-		delta = firstMissing[2].total_seconds() - expectedDelta.total_seconds()
+		self.assertEqual(4, len(firstMissing))
+		self.assertEqual(listAddress, firstMissing[0])
+		self.assertEqual(uuid, firstMissing[1])
+		self.assertEqual(address, firstMissing[2])
+		delta = firstMissing[3].total_seconds() - expectedDelta.total_seconds()
 		self.assertTrue(delta <= 10)
 
 	def testAccounts(self):
@@ -87,7 +91,7 @@ class TestCanaryDB(unittest.TestCase):
 		self.assertEqual(password, accounts[0][3])
 
 		# Remove the account
-		self.db.remove_account(address)
+		self.db.remove_account(listAddress, address)
 		accounts = self.db.get_accounts()
 		self.assertEqual(0, len(accounts))
 

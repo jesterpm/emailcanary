@@ -1,5 +1,5 @@
 import uuid, datetime, time
-import email, emailutils
+import email.message, emailutils
 import re
 
 class Canary:
@@ -12,12 +12,20 @@ class Canary:
 		chirpUUID = str(uuid.uuid4())
 		now = datetime.datetime.now()
 
+		receipients = self.db.get_recipients_for_list(listAddress)
+		if len(receipients) == 0:
+			raise Exception("No receipients for listAddress '%s'", (listAddress,))
+
 		self.send(listAddress, now, chirpUUID)
-		for dest in self.db.get_recipients_for_list(listAddress):
-			self.db.ping(dest, now, chirpUUID)
+		for dest in receipients:
+			self.db.ping(listAddress, dest, now, chirpUUID)
 
 	def check(self, listAddress):
-		for (listAddress, address, imapserver, password) in self.db.get_accounts(listAddress):
+		'''Check for messages from listAddress and return a list of missing chirps'''
+		accounts = self.db.get_accounts(listAddress)
+		if len(accounts) == 0:
+			raise Exception("No receipients for listAddress '%s'", (listAddress,))
+		for (listAddress, address, imapserver, password) in accounts:
 			mail = emailutils.get_imap(imapserver, address, password)
 			these_subjects = []
 			for uid in emailutils.get_mail_uids(mail):
@@ -25,6 +33,7 @@ class Canary:
 				if self.processMessage(address, message):
 					emailutils.delete_message(mail, uid)
 			emailutils.close(mail)
+		return self.db.get_missing_pongs(listAddress)
 
 	def processMessage(self, receipient, msg):
 		match = re.match('Canary Email (.+)', msg['Subject'])
@@ -34,7 +43,6 @@ class Canary:
 			self.db.pong(receipient, now, chirpUUID)
 			return True
 		return False
-
 
 	def send(self, dest, date, chirpUUID):
 		msg = email.message.Message()

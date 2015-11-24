@@ -1,7 +1,7 @@
 PYTHON=`which python`
 NAME=`python setup.py --name`
 
-all: check test source deb
+all: check test source
 
 init:
 	pip install -r requirements.txt --use-mirrors
@@ -19,7 +19,6 @@ rpm:
 
 test:
 	unit2 discover -s tests -t .
-	python -mpytest weasyprint
 
 check:
 	find . -name \*.py | grep -v "^test_" | xargs pylint --errors-only --reports=n

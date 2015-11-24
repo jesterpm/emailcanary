@@ -7,7 +7,7 @@ class CanaryDB:
 
 		# Create Tables if necessary
 		cursor = self.conn.cursor()
-		cursor.execute("CREATE TABLE IF NOT EXISTS pings (address, uuid, timesent timestamp, timereceived timestamp)")
+		cursor.execute("CREATE TABLE IF NOT EXISTS pings (listAddress, address, uuid, timesent timestamp, timereceived timestamp)")
 		cursor.execute("CREATE TABLE IF NOT EXISTS accounts (list, address, imapserver, password)")
 
 	def close(self):
@@ -19,9 +19,9 @@ class CanaryDB:
 			(listAddress, address, imapserver, password))
 		self.conn.commit()
 
-	def remove_account(self, address):
+	def remove_account(self, listAddress, address):
 		cursor = self.conn.cursor()
-		cursor.execute("DELETE FROM accounts WHERE address=?", (address,))
+		cursor.execute("DELETE FROM accounts WHERE list=? AND address=?", (listAddress, address))
 		self.conn.commit()
 
 	def get_accounts(self, listAddress = None):
@@ -47,10 +47,10 @@ class CanaryDB:
 			results.append(row[0])
 		return results
 
-	def ping(self, address, time, uuid):
+	def ping(self, listAddress, address, time, uuid):
 		cursor = self.conn.cursor()
-		cursor.execute("INSERT INTO pings (address, timesent, uuid) VALUES (?, ?, ?)", \
-			(address, time, uuid))
+		cursor.execute("INSERT INTO pings (listAddress, address, timesent, uuid) VALUES (?, ?, ?, ?)", \
+			(listAddress, address, time, uuid))
 		self.conn.commit()
 
 	def pong(self, address, time, uuid):
@@ -59,16 +59,20 @@ class CanaryDB:
 			(time, address, uuid))
 		self.conn.commit()
 
-	def get_missing_pongs(self):
+	def get_missing_pongs(self, listAddress = None):
 		'''Return a list of tupls of missing pongs.
-		   Each tupl contains (uuid, address, time since send)'''
+		   Each tupl contains (listAddress, uuid, address, time since send)'''
 		cursor = self.conn.cursor()
-		cursor.execute("SELECT uuid, address, timesent FROM pings WHERE timereceived IS NULL");
+		if listAddress:
+			cursor.execute("SELECT listAddress, uuid, address, timesent FROM pings WHERE timereceived IS NULL AND listAddress = ?", (listAddress,));
+		else:
+			cursor.execute("SELECT listAddress, uuid, address, timesent FROM pings WHERE timereceived IS NULL");
 		now = datetime.now()
 		results = list()
 		for row in cursor:
-			uuid = row[0]
-			address = row[1]
-			delta = now - row[2]
-			results.append((uuid, address, delta))
+			listAddress = row[0]
+			uuid = row[1]
+			address = row[2]
+			delta = now - row[3]
+			results.append((listAddress, uuid, address, delta))
 		return results

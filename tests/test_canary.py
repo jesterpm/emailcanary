@@ -40,10 +40,10 @@ class TestCanary(unittest.TestCase):
 		# Assert DB updated
 		self.db.get_recipients_for_list.assert_called_with(LIST_ADDRESS)
 		self.db.ping.assert_has_calls( \
-			[mock.call(USER_ADDRESS1, mock.ANY, mock.ANY), \
-			 mock.call(USER_ADDRESS2, mock.ANY, mock.ANY)])
+			[mock.call(LIST_ADDRESS, USER_ADDRESS1, mock.ANY, mock.ANY), \
+			 mock.call(LIST_ADDRESS, USER_ADDRESS2, mock.ANY, mock.ANY)])
 		args = self.db.ping.call_args
-		expectedSubject = "Canary Email " + args[0][2]
+		expectedSubject = "Canary Email " + args[0][3]
 
 		# Assert emails were sent
 		self.assertEqual(1, self.smtp.sendmail.call_count)
