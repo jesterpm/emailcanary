@@ -36,7 +36,7 @@ class Canary:
 		return self.db.get_missing_pongs(listAddress)
 
 	def processMessage(self, receipient, msg):
-		match = re.match('Canary Email (.+)', msg['Subject'])
+		match = re.match('.*Canary Email (.+)', msg['Subject'])
 		if match:
 			chirpUUID = match.group(1)
 			now = datetime.datetime.now()
