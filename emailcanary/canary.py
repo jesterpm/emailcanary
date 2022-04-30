@@ -1,6 +1,7 @@
 import uuid, datetime, time
-import email.message, emailutils
+import email.message
 import re
+from . import emailutils
 
 class Canary:
 	def __init__(self, db, smtp, fromaddress):
@@ -30,13 +31,13 @@ class Canary:
 			these_subjects = []
 			for uid in emailutils.get_mail_uids(mail):
 				message = emailutils.get_message(mail, uid)
-				if self.processMessage(address, message):
+				if message is not None and self.processMessage(address, message):
 					emailutils.delete_message(mail, uid)
 			emailutils.close(mail)
 		return self.db.get_missing_pongs(listAddress)
 
 	def processMessage(self, receipient, msg):
-		match = re.match('.*Canary Email (.+)', msg['Subject'])
+		match = re.match('.*Canary Email (.+)', str(msg['Subject']))
 		if match:
 			chirpUUID = match.group(1)
 			now = datetime.datetime.now()

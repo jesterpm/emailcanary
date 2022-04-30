@@ -1,8 +1,9 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import argparse
 import sys
 import smtplib
+import traceback
 from emailcanary import canarydb
 from emailcanary import canary
 
@@ -39,10 +40,10 @@ def list(db):
 	if len(accounts) == 0:
 		print('No accounts configured.')
 		return SUCCESS
-	print "%-25s %-25s %-25s" % ('List Address', 'Recepient', 'IMAP Server')
-	print "-" * 80
+	print("%-25s %-25s %-25s" % ('List Address', 'Recepient', 'IMAP Server'))
+	print("-" * 80)
 	for account in accounts:
-		print "%-25s %-25s %-25s" % (account[0], account[1], account[2])
+		print("%-25s %-25s %-25s" % (account[0], account[1], account[2]))
 	return SUCCESS
 
 def add(db, listAddress, recepient, imapserver, password):
@@ -58,11 +59,14 @@ def remove(db, listAddress, recepients):
 
 def check(db, birdie, listAddress):
 	missing = birdie.check(listAddress)
+	missing = [x for x in missing if x[3].total_seconds() < 86400]
+	missing = [x for x in missing if x[3].total_seconds() > 3600]
 	if len(missing) == 0:
 		return SUCCESS
-	print "list recepient uuid time"
+	print("list recepient uuid time")
 	for chirp in missing:
-		print "%s %s %s %d" % (chirp[0], chirp[1], chirp[2], chirp[3].total_seconds())
+		# Only Print chirps which were missing for more than 15 minutes.
+		print("%s %s %s %d" % (chirp[0], chirp[1], chirp[2], chirp[3].total_seconds()))
 	return FAILURE
 
 def main():
@@ -92,8 +96,9 @@ def main():
 			else:
 				raise Exception('Unknown action')
 
-	except Exception, e:
+	except Exception as e:
 		sys.stderr.write("Error: %s\n" % (str(e)))
+		traceback.print_exc()
 		return FAILURE
 	finally:
 		if smtp:

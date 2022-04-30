@@ -1,6 +1,6 @@
-import emailutils
 import smtplib
 from email import message
+from . import emailutils
 
 PASSWORD="secret"
 ACCOUNTS = [('mail.example.com', 'email@example.com', PASSWORD)]
