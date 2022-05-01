@@ -1,6 +1,7 @@
 import sys
 import imaplib, email
 
+
 def get_imap(server, username, password):
     '''Connect and login via IMAP'''
     try:
@@ -29,8 +30,8 @@ def get_message(mail, uid):
         if dat0 is None:
             return None
         else:
-            raw_email = str(dat0[1])
-            return email.message_from_string(raw_email)
+            raw_email = dat0[1]
+            return email.message_from_bytes(raw_email)
     else:
         raise Exception("Bad response from server: %s" % (result))
 
