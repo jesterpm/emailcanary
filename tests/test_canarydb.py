@@ -89,6 +89,7 @@ class TestCanaryDB(unittest.TestCase):
         self.assertEqual(address, accounts[0][1])
         self.assertEqual(imapserver, accounts[0][2])
         self.assertEqual(password, accounts[0][3])
+        self.assertEqual(0, accounts[0][4])
 
         # Remove the account
         self.db.remove_account(listAddress, address)

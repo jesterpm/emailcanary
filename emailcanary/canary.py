@@ -26,7 +26,8 @@ class Canary:
         accounts = self.db.get_accounts(listAddress)
         if len(accounts) == 0:
             raise Exception("No receipients for listAddress '%s'", (listAddress,))
-        for (listAddress, address, imapserver, password) in accounts:
+        result = []
+        for (listAddress, address, imapserver, password, mute) in accounts:
             mail = emailutils.get_imap(imapserver, address, password)
             these_subjects = []
             for uid in emailutils.get_mail_uids(mail):
@@ -34,7 +35,9 @@ class Canary:
                 if message is not None and self.processMessage(address, message):
                     emailutils.delete_message(mail, uid)
             emailutils.close(mail)
-        return self.db.get_missing_pongs(listAddress)
+            if time.time() > mute:
+                result.extend(self.db.get_missing_pongs(listAddress, address))
+        return result
 
     def processMessage(self, receipient, msg):
         match = re.match('.*Canary Email (.+)', msg['Subject'])

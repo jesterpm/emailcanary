@@ -3,6 +3,7 @@
 import argparse
 import sys
 import smtplib
+import time
 import traceback
 from emailcanary import canarydb
 from emailcanary import canary
@@ -20,6 +21,7 @@ def parse_args():
     group.add_argument('--chirp', metavar='listAddress', help='Send an email to the given canary list address.')
     group.add_argument('--check', metavar='listAddress', help='Check the recepient addresses for the list address.')
     group.add_argument('--add', nargs=4, metavar=('listAddress', 'address', 'imapserver', 'password'), help='Add a new recepient and list.')
+    group.add_argument('--mute', nargs=3, metavar=('listAddress', 'address', 'days'), help='Mute errors for the account for the given number of days.')
     group.add_argument('--remove', nargs='+', metavar=('listAddress', 'address'), help='Remove recepients from the list.')
     group.add_argument('--list', action='store_true', help='List all configured addresses.')
 
@@ -48,6 +50,10 @@ def list(db):
 
 def add(db, listAddress, recepient, imapserver, password):
     db.add_account(listAddress, recepient, imapserver, password)
+    return SUCCESS
+
+def mute(db, listAddress, recepient, days):
+    db.mute_account(listAddress, recepient, time.time() + 86400 * days)
     return SUCCESS
 
 def remove(db, listAddress, recepients):
@@ -83,6 +89,8 @@ def main():
             return list(db)
         elif args.add:
             return add(db, args.add[0], args.add[1], args.add[2], args.add[3])
+        elif args.mute:
+            return mute(db, args.mute[0], args.mute[1], int(args.mute[2]))
         elif args.remove:
             return remove(db, args.remove[0], args.remove[1:])
         else:
