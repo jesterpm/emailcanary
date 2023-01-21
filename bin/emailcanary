@@ -40,7 +40,7 @@ def list(db):
     if len(accounts) == 0:
         print('No accounts configured.')
         return SUCCESS
-    print("%-25s %-25s %-25s" % ('List Address', 'Recepient', 'IMAP Server'))
+    print("%-25s %-25s %-25s" % ('List Address', 'Recipient', 'IMAP Server'))
     print("-" * 80)
     for account in accounts:
         print("%-25s %-25s %-25s" % (account[0], account[1], account[2]))
