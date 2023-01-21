@@ -16,7 +16,7 @@ class TestCanaryDB(unittest.TestCase):
     def testPingCheckPong(self):
         listAddress = "list@example.com"
         address = "test@example.com"
-        time = datetime.datetime(2015, 10, 24, 9, 00)
+        time = datetime.datetime(2015, 10, 24, 9, 0)
         uuid = "1234"
         expectedDelta = datetime.datetime.now() - time
 
@@ -36,7 +36,7 @@ class TestCanaryDB(unittest.TestCase):
         self.assertTrue(delta <= 10)
 
         # Record a pong
-        pongtime = datetime.datetime(2015, 10, 24, 9, 05)
+        pongtime = datetime.datetime(2015, 10, 24, 9, 5)
         self.db.pong(address, pongtime, uuid)
 
         # Check for missing pongs
@@ -46,7 +46,7 @@ class TestCanaryDB(unittest.TestCase):
     def testCloseReopen(self):
         listAddress = "list@example.com"
         address = "test@example.com"
-        time = datetime.datetime(2015, 10, 24, 9, 00)
+        time = datetime.datetime(2015, 10, 24, 9, 0)
         uuid = "1234"
         expectedDelta = datetime.datetime.now() - time
 

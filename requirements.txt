@@ -2,3 +2,4 @@ setuptools
 pylint
 unittest2
 mock
+stdeb

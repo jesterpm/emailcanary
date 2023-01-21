@@ -1,10 +1,10 @@
-PYTHON=`which python`
-NAME=`python setup.py --name`
+PYTHON=`which python3`
+NAME=`python3 setup.py --name`
 
 all: check test source
 
 init:
-	pip install -r requirements.txt --use-mirrors
+	pip3 install -r requirements.txt
 
 dist: source deb
 
