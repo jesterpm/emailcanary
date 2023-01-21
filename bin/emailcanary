@@ -11,100 +11,100 @@ SUCCESS=0
 FAILURE=1
 
 def parse_args():
-	parser = argparse.ArgumentParser()
-	parser.add_argument('-d', '--database', default='/etc/emailcanary.db', help='Specify the database to use.')
-	parser.add_argument('-s', '--smtp', default='localhost:465', help='SMTP Server to send chirps to.')
-	parser.add_argument('-f', '--from', dest='fromaddress', help='Specify the email address to send the ping from.')
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-d', '--database', default='/etc/emailcanary.db', help='Specify the database to use.')
+    parser.add_argument('-s', '--smtp', default='localhost:465', help='SMTP Server to send chirps to.')
+    parser.add_argument('-f', '--from', dest='fromaddress', help='Specify the email address to send the ping from.')
 
-	group = parser.add_mutually_exclusive_group(required=True)
-	group.add_argument('--chirp', metavar='listAddress', help='Send an email to the given canary list address.')
-	group.add_argument('--check', metavar='listAddress', help='Check the recepient addresses for the list address.')
-	group.add_argument('--add', nargs=4, metavar=('listAddress', 'address', 'imapserver', 'password'), help='Add a new recepient and list.')
-	group.add_argument('--remove', nargs='+', metavar=('listAddress', 'address'), help='Remove recepients from the list.')
-	group.add_argument('--list', action='store_true', help='List all configured addresses.')
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument('--chirp', metavar='listAddress', help='Send an email to the given canary list address.')
+    group.add_argument('--check', metavar='listAddress', help='Check the recepient addresses for the list address.')
+    group.add_argument('--add', nargs=4, metavar=('listAddress', 'address', 'imapserver', 'password'), help='Add a new recepient and list.')
+    group.add_argument('--remove', nargs='+', metavar=('listAddress', 'address'), help='Remove recepients from the list.')
+    group.add_argument('--list', action='store_true', help='List all configured addresses.')
 
-	args = parser.parse_args()
-	return args
+    args = parser.parse_args()
+    return args
 
 def get_smtp(address):
-	index = address.find(':')
-	if index == -1:
-		server = address
-		port = 465
-	else:
-		(server, port) = address.split(':')
-	return smtplib.SMTP_SSL(server, port)
+    index = address.find(':')
+    if index == -1:
+        server = address
+        port = 465
+    else:
+        (server, port) = address.split(':')
+    return smtplib.SMTP_SSL(server, port)
 
 def list(db):
-	accounts = db.get_accounts()
-	if len(accounts) == 0:
-		print('No accounts configured.')
-		return SUCCESS
-	print("%-25s %-25s %-25s" % ('List Address', 'Recepient', 'IMAP Server'))
-	print("-" * 80)
-	for account in accounts:
-		print("%-25s %-25s %-25s" % (account[0], account[1], account[2]))
-	return SUCCESS
+    accounts = db.get_accounts()
+    if len(accounts) == 0:
+        print('No accounts configured.')
+        return SUCCESS
+    print("%-25s %-25s %-25s" % ('List Address', 'Recepient', 'IMAP Server'))
+    print("-" * 80)
+    for account in accounts:
+        print("%-25s %-25s %-25s" % (account[0], account[1], account[2]))
+    return SUCCESS
 
 def add(db, listAddress, recepient, imapserver, password):
-	db.add_account(listAddress, recepient, imapserver, password)
-	return SUCCESS
+    db.add_account(listAddress, recepient, imapserver, password)
+    return SUCCESS
 
 def remove(db, listAddress, recepients):
-	if len(recepients) == 0:
-		recepients = db.get_accounts(listAddress)
-	for address in recepients:
-		db.remove_account(listAddress, address)
-	return SUCCESS
+    if len(recepients) == 0:
+        recepients = db.get_accounts(listAddress)
+    for address in recepients:
+        db.remove_account(listAddress, address)
+    return SUCCESS
 
 def check(db, birdie, listAddress):
-	missing = birdie.check(listAddress)
-	missing = [x for x in missing if x[3].total_seconds() < 86400]
-	missing = [x for x in missing if x[3].total_seconds() > 3600]
-	if len(missing) == 0:
-		return SUCCESS
-	print("list recepient uuid time")
-	for chirp in missing:
-		# Only Print chirps which were missing for more than 15 minutes.
-		print("%s %s %s %d" % (chirp[0], chirp[1], chirp[2], chirp[3].total_seconds()))
-	return FAILURE
+    missing = birdie.check(listAddress)
+    missing = [x for x in missing if x[3].total_seconds() < 86400]
+    missing = [x for x in missing if x[3].total_seconds() > 3600]
+    if len(missing) == 0:
+        return SUCCESS
+    print("list recepient uuid time")
+    for chirp in missing:
+        # Only Print chirps which were missing for more than 15 minutes.
+        print("%s %s %s %d" % (chirp[0], chirp[1], chirp[2], chirp[3].total_seconds()))
+    return FAILURE
 
 def main():
-	args = parse_args()
-	if not args:
-		return
+    args = parse_args()
+    if not args:
+        return
 
-	smtp = None
-	db = None
-	try:
-		db = canarydb.CanaryDB(args.database)
+    smtp = None
+    db = None
+    try:
+        db = canarydb.CanaryDB(args.database)
 
-		if args.list:
-			return list(db)
-		elif args.add:
-			return add(db, args.add[0], args.add[1], args.add[2], args.add[3])
-		elif args.remove:
-			return remove(db, args.remove[0], args.remove[1:])
-		else:
-			smtp = get_smtp(args.smtp)
-			birdie = canary.Canary(db, smtp, args.fromaddress)
-			if args.chirp:
-				birdie.chirp(args.chirp)
-				return SUCCESS
-			elif args.check:
-				return check(db, birdie, args.check)
-			else:
-				raise Exception('Unknown action')
+        if args.list:
+            return list(db)
+        elif args.add:
+            return add(db, args.add[0], args.add[1], args.add[2], args.add[3])
+        elif args.remove:
+            return remove(db, args.remove[0], args.remove[1:])
+        else:
+            smtp = get_smtp(args.smtp)
+            birdie = canary.Canary(db, smtp, args.fromaddress)
+            if args.chirp:
+                birdie.chirp(args.chirp)
+                return SUCCESS
+            elif args.check:
+                return check(db, birdie, args.check)
+            else:
+                raise Exception('Unknown action')
 
-	except Exception as e:
-		sys.stderr.write("Error: %s\n" % (str(e)))
-		traceback.print_exc()
-		return FAILURE
-	finally:
-		if smtp:
-			smtp.quit()
-		if db:
-			db.close()
+    except Exception as e:
+        sys.stderr.write("Error: %s\n" % (str(e)))
+        traceback.print_exc()
+        return FAILURE
+    finally:
+        if smtp:
+            smtp.quit()
+        if db:
+            db.close()
 
 if __name__ == "__main__":
-	sys.exit(main())
+    sys.exit(main())

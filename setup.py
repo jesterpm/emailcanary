@@ -12,11 +12,11 @@ setup(name='emailcanary',
       packages = find_packages(),
       include_package_data = True,
       exclude_package_data = { '': ['README.txt'] },
-      
+
       scripts = ['bin/emailcanary'],
-      
+
       license='MIT',
-                  
+
       #setup_requires = ['python-stdeb', 'fakeroot', 'python-all'],
       install_requires = ['setuptools'],
      )
