@@ -15,6 +15,7 @@ USER_ADDRESS2 = "user2@example.com"
 
 SERVER = "mail.example.com"
 PASSWORD = "secret"
+MUTE = 0
 
 class TestCanary(unittest.TestCase):
     def setUp(self):
@@ -58,9 +59,10 @@ class TestCanary(unittest.TestCase):
     def testCheck(self):
         # Setup mocks
         expectedUUID = "1234-5678-9012-3456"
+        self.db.get_missing_pongs.return_value = []
         self.db.get_accounts.return_value = [ \
-            (LIST_ADDRESS, USER_ADDRESS1, SERVER, PASSWORD), \
-            (LIST_ADDRESS, USER_ADDRESS2, SERVER, PASSWORD)]
+            (LIST_ADDRESS, USER_ADDRESS1, SERVER, PASSWORD, MUTE), \
+            (LIST_ADDRESS, USER_ADDRESS2, SERVER, PASSWORD, MUTE)]
         canary.emailutils.get_mail_uids.return_value = [1]
         canary.emailutils.get_message.return_value = {'Subject': "Canary Email " + expectedUUID}
 
@@ -83,7 +85,8 @@ class TestCanary(unittest.TestCase):
 
     def testDontDeleteOtherMail(self):
         # Setup mocks
-        self.db.get_accounts.return_value = [(LIST_ADDRESS, USER_ADDRESS1, SERVER, PASSWORD)]
+        self.db.get_accounts.return_value = [(LIST_ADDRESS, USER_ADDRESS1, SERVER, PASSWORD, MUTE)]
+        self.db.get_missing_pongs.return_value = []
         canary.emailutils.get_mail_uids.return_value = [1]
         canary.emailutils.get_message.return_value = {'Subject': "Buy Our New Widget"}
 
