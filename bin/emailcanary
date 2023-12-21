@@ -16,6 +16,7 @@ def parse_args():
     parser.add_argument('-d', '--database', default='/etc/emailcanary.db', help='Specify the database to use.')
     parser.add_argument('-s', '--smtp', default='localhost:465', help='SMTP Server to send chirps to.')
     parser.add_argument('-f', '--from', dest='fromaddress', help='Specify the email address to send the ping from.')
+    parser.add_argument('-t', '--threshold', dest='threshold', default='1', type=int, help='The minimum number of failures before reporting.')
 
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument('--chirp', metavar='listAddress', help='Send an email to the given canary list address.')
@@ -63,11 +64,11 @@ def remove(db, listAddress, recepients):
         db.remove_account(listAddress, address)
     return SUCCESS
 
-def check(db, birdie, listAddress):
+def check(db, birdie, listAddress, threshold):
     missing = birdie.check(listAddress)
     missing = [x for x in missing if x[3].total_seconds() < 86400]
     missing = [x for x in missing if x[3].total_seconds() > 3600]
-    if len(missing) == 0:
+    if len(missing) < threshold:
         return SUCCESS
     print("list recepient uuid time")
     for chirp in missing:
@@ -100,7 +101,7 @@ def main():
                 birdie.chirp(args.chirp)
                 return SUCCESS
             elif args.check:
-                return check(db, birdie, args.check)
+                return check(db, birdie, args.check, args.threshold)
             else:
                 raise Exception('Unknown action')
 

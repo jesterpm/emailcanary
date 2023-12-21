@@ -2,12 +2,13 @@
 from setuptools import setup, find_packages
 
 setup(name='emailcanary',
-      version='0.1',
+      version='0.2',
       author='Jesse Morgan',
       author_email='jesse@jesterpm.net',
       url='https://jesterpm.net',
       download_url='http://www.my_program.org/files/',
       description='Email Canary sends emails to a distribution list and checks for proper distribution.',
+      long_description='',
 
       packages = find_packages(),
       include_package_data = True,
